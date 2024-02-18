@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>البحث عن الأفلام</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        padding: 20px;
+    }
+    #searchContainer {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    #movieResults {
+        margin-top: 20px;
+    }
+    .movieCard {
+        margin-bottom: 20px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .movieCard img {
+        width: 200px;
+        height: 300px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+</style>
+</head>
+<body>
+
+<div id="searchContainer">
+    <h1 class="mb-4">البحث عن الأفلام</h1>
+    <div class="form-group">
+        <input type="text" id="searchInput" class="form-control" placeholder="أدخل اسم الفيلم...">
+    </div>
+    <button class="btn btn-primary" onclick="searchMovie()">بحث</button>
+
+    <div id="movieResults"></div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+function searchMovie() {
+    var searchTerm = $("#searchInput").val();
+    var apiKey = "2074b60618248785fdc2da75a2a747e0";
+    var apiUrl = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + encodeURIComponent(searchTerm);
+
+    $.ajax({
+        url: apiUrl,
+        type: "GET",
+        success: function(response) {
+            var movieResultsDiv = $("#movieResults");
+            movieResultsDiv.empty();
+
+            if (response.results && response.results.length > 0) {
+                $.each(response.results, function(index, movie) {
+                    var posterPath = "https://image.tmdb.org/t/p/w500" + movie.poster_path;
+
+                    var movieCard = $("<div class='movieCard'></div>");
+                    movieCard.append("<img src='" + posterPath + "' alt='" + movie.title + "'>");
+                    movieCard.append("<h3>" + movie.title + "</h3>");
+                    movieCard.append("<p><strong>تاريخ العرض:</strong> " + movie.release_date + "</p>");
+                    var releaseDate = new Date(movie.release_date);
+                    var currentDate = new Date();
+                    var years = currentDate.getFullYear() - releaseDate.getFullYear();
+                    var months = currentDate.getMonth() - releaseDate.getMonth();
+                    var days = currentDate.getDate() - releaseDate.getDate();
+                    if (months < 0 || (months === 0 && days < 0)) {
+                        years--;
+                    }
+                    if (months < 0) {
+                        months += 12;
+                    }
+                    if (days < 0) {
+                        days += new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+                        months--;
+                    }
+                    movieCard.append("<p><strong>مضت " + years + " سنة و " + months + " شهر و " + days + " يوم منذ العرض</strong></p>");
+                    if (movie.overview) {
+                        movieCard.append("<p>" + movie.overview + "</p>");
+                    } else {
+                        movieCard.append("<p>لا يوجد وصف لهذا الفيلم.</p>");
+                    }
+
+                    movieResultsDiv.append(movieCard);
+                });
+            } else {
+                movieResultsDiv.append("<p>لم يتم العثور على أي نتائج.</p>");
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("خطأ:", error);
+            $("#movieResults").html("<p>حدث خطأ أثناء البحث عن الأفلام.</p>");
+        }
+    });
+}
+</script>
+
+</body>
+</html>
